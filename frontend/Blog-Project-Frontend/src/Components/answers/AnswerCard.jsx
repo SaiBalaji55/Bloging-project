@@ -1,6 +1,7 @@
 import VoteButtons from '../questions/VoteButtons';
 import AcceptAnswerButton from './AcceptAnswerButton';
 import CommentList from './CommentList';
+import CommentSection from './CommentSection';
 
 const AnswerCard = ({ 
   answer, 
@@ -55,6 +56,9 @@ const AnswerCard = ({
             answered {new Date(answer.createdAt).toLocaleString()} by <span className="font-medium text-blue-600 dark:text-blue-400">{answer.userId?.username || 'Unknown'}</span>
           </div>
         </div>
+
+        {/* FIX: Use answer._id here */}
+        <CommentSection targetId={answer._id} type='answer'/>
 
         {/* Nested Comments Section */}
         <div className="mt-4 pt-4">

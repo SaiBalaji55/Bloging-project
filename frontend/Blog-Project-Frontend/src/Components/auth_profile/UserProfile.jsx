@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import ProfileTabs from './ProfileTabs';
 import ReputationBadge from './ReputationBadge';
+import QuestionList from '../questions/QuestionList'; 
 
 const UserProfile = ({ user, questions = [], answers = [] }) => {
   const [activeTab, setActiveTab] = useState('questions');
@@ -22,23 +24,46 @@ const UserProfile = ({ user, questions = [], answers = [] }) => {
         </div>
       </div>
 
-      {/* Tabs and Content */}
+      {/* Tabs */}
       <ProfileTabs 
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         counts={{ questions: questions.length, answers: answers.length }} 
       />
 
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-1 min-h-[300px]">
+      {/* Content Rendering Area */}
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-1 min-h-[300px] mt-4">
+        
+        {/* Render Questions */}
         {activeTab === 'questions' && (
-          <div className="p-4 text-gray-500 text-center">
-            {questions.length > 0 ? "Map over your QuestionCard components here" : "No questions asked yet."}
+          <div className="p-4">
+            {questions.length > 0 ? (
+              <QuestionList questions={questions} emptyMessage="" />
+            ) : (
+              <div className="text-gray-500 text-center py-8">No questions asked yet.</div>
+            )}
           </div>
         )}
         
+        {/* Render Answers */}
         {activeTab === 'answers' && (
-          <div className="p-4 text-gray-500 text-center">
-            {answers.length > 0 ? "Map over your Answer summary components here" : "No answers provided yet."}
+          <div className="flex flex-col gap-4 p-4">
+            {answers.length > 0 ? (
+              answers.map((a) => (
+                <div key={a._id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <div className="text-sm text-gray-500 mb-3">
+                    Answered on:{' '}
+                    <Link to={`/questions/${a.questionId?._id || a.questionId}`} className="text-blue-600 hover:underline font-medium">
+                      {a.questionId?.questionTitle || "View Question"}
+                    </Link>
+                  </div>
+                  {/* Safely render the HTML content of the answer */}
+                  <div className="text-gray-800 dark:text-gray-200 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: a.content || a.answerText || a.body }} />
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500 text-center py-8">No answers provided yet.</div>
+            )}
           </div>
         )}
       </div>

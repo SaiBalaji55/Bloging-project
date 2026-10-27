@@ -17,6 +17,7 @@ import UserProfilePage from './Pages/UserProfilePage';
 import LoginPage from './Pages/LoginPage';
 import RegisterPage from './Pages/RegisterPage';
 import NotFoundPage from './Pages/NotFoundPage';
+import UsersPage from './Pages/UsersPage';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/tags/:tagName/questions" element={<TagQuestionsPage />} />
             <Route path="/users/:id" element={<UserProfilePage />} />
+            <Route path="/users" element={<UsersPage />} />
             
             {/* Protected Routes (Redirect to /login if not authenticated) */}
             <Route element={<ProtectedRoute />}>

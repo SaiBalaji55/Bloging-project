@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import QuestionDetails from '../Components/questions/QuestionDetails';
 import AnswerList from '../Components/answers/AnswerList';
 import AnswerForm from '../Components/answers/AnswerForm';
-import { dummyQuestions } from '../dummyData';
+// 1. Import the voteQuestion API
+import { fetchQuestionById, deleteQuestion, voteQuestion } from '../api/questionApi';
+// 2. Import the voteAnswer and acceptAnswer APIs
+import { fetchAnswers, createAnswer, voteAnswer, acceptAnswer, deleteAnswer } from '../api/answerApi';
 import { useAuth } from '../Context/AuthContext';
 
 const QuestionDetailsPage = () => {
@@ -10,82 +14,136 @@ const QuestionDetailsPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
 
-  const question = dummyQuestions.find(q => q._id === id);
+  const [question, setQuestion] = useState(null);
+  const [answers, setAnswers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // --- MOCK ANSWERS DATA (Since we don't have an API yet) ---
-  const mockAnswers = [
-    {
-      _id: 'a1',
-      content: 'You need to make sure your tailwind.config.js includes the paths to all your template files. Add this to your content array: \n\n content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"]',
-      userId: { _id: 'u3', username: 'react_master' },
-      // eslint-disable-next-line react-hooks/purity
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      voteScore: 5,
-      userVote: 1,
-      isAccepted: true,
-      comments: [
-        { _id: 'c1', content: 'This fixed it, thank you!', userId: { username: 'frontend_ninja' }, createdAt: new Date().toISOString() }
-      ]
-    }
-  ];
+  useEffect(() => {
+    const loadThread = async () => {
+      setIsLoading(true);
+      try {
+        const [questionData, answersData] = await Promise.all([
+          fetchQuestionById(id),
+          fetchAnswers(id)
+        ]);
+        setQuestion(questionData.question || questionData);
+        setAnswers(answersData.answers || answersData);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load question details.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadThread();
+  }, [id]);
 
-  // Handlers for Question Actions
   const handleEdit = () => navigate(`/questions/${id}/edit`);
-  const handleDelete = () => {
-    alert("Delete clicked!");
-    navigate('/questions');
+  
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this question?")) return;
+    try {
+      await deleteQuestion(id);
+      navigate('/questions');
+    } catch (err) {
+      console.error(err)
+      alert("Failed to delete question.");
+    }
   };
-  const handleVote = (value) => console.log(`Voted on question: ${value}`);
 
-  // Handlers for Answer Actions
-  const handleAnswerSubmit = (formData) => {
-    console.log("Submitting new answer:", formData);
-    alert("Answer posted! (This will be an API call later)");
+  const handleAnswerSubmit = async (formData) => {
+    try {
+      const newAnswer = await createAnswer(id, formData);
+      setAnswers([...answers, newAnswer.answer || newAnswer]); 
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to post answer.");
+    }
   };
-  const handleAnswerVote = (answerId, value) => console.log(`Voted on answer ${answerId}: ${value}`);
-  const handleAnswerAccept = (answerId) => console.log(`Accepted answer ${answerId}`);
-  const handleAnswerDelete = (answerId) => console.log(`Deleted answer ${answerId}`);
 
-  if (!question) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Question not found</h2>
-        <button onClick={() => navigate('/questions')} className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-md">
-          Back to Questions
-        </button>
-      </div>
-    );
-  }
+  // --- NEW: Voting and Accepting Logic ---
+
+  const handleQuestionVote = async (...args) => {
+    if (!isAuthenticated) return alert("You must be logged in to vote.");
+    const voteValue = args.length > 1 ? args[1] : args[0];
+    try {
+      // 1. Submit the vote
+      await voteQuestion(id, voteValue);
+      
+      // 2. Fetch the full, fresh question data again so we don't lose the content
+      const freshData = await fetchQuestionById(id);
+      setQuestion(freshData.question || freshData); 
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to vote.");
+    }
+  };
+
+  const handleAnswerVote = async (answerId, value) => {
+    if (!isAuthenticated) return alert("You must be logged in to vote.");
+    try {
+      // 1. Submit the vote
+      await voteAnswer(answerId, value);
+      
+      // 2. Fetch the fresh list of answers to safely update the UI
+      const freshData = await fetchAnswers(id);
+      setAnswers(freshData.answers || freshData);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to vote.");
+    }
+  };
+
+  const handleAcceptAnswer = async (answerId) => {
+    try {
+      await acceptAnswer(answerId);
+      // Update the UI: set isAccepted to true for this answer, and false for all others
+      setAnswers(answers.map(ans => 
+        ans._id === answerId ? { ...ans, isAccepted: true } : { ...ans, isAccepted: false }
+      ));
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to accept answer.");
+    }
+  };
+
+  const handleDeleteAnswer = async (answerId) => {
+    if (!window.confirm("Are you sure you want to delete this answer?")) return;
+    try {
+      await deleteAnswer(answerId);
+      // Remove the deleted answer from the screen
+      setAnswers(answers.filter(ans => ans._id !== answerId));
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete answer.");
+    }
+  };
+
+  if (isLoading) return <div className="p-8 text-center">Loading thread...</div>;
+  if (error || !question) return <div className="p-8 text-center text-red-500">{error || "Question not found"}</div>;
 
   return (
     <div className="max-w-4xl mx-auto w-full flex flex-col gap-8">
       
-      {/* 1. The Main Question */}
       <QuestionDetails 
         question={question}
         currentUserId={user?._id}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onVote={handleVote}
+        onVote={handleQuestionVote} // <-- Now connected
       />
 
-      {/* 2. The Answers Feed */}
       <div className="pt-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-          {mockAnswers.length} Answers
+          {answers.length} Answers
         </h2>
         
         <AnswerList 
-          answers={mockAnswers}
+          answers={answers}
           currentUserId={user?._id}
-          questionOwnerId={question.userId?._id}
-          onVote={handleAnswerVote}
-          onAccept={handleAnswerAccept}
-          onDelete={handleAnswerDelete}
+          questionOwnerId={question.userId?._id} // Required to show the "Accept" button only to the owner
+          onVote={handleAnswerVote} // <-- Now connected
+          onAccept={handleAcceptAnswer} // <-- Now connected
+          onDelete={handleDeleteAnswer} // <-- Now connected
         />
       </div>
 
-      {/* 3. The Answer Form (Only show if logged in) */}
       <div className="pt-8 mt-4 border-t border-gray-200 dark:border-gray-700">
         {isAuthenticated ? (
           <AnswerForm onSubmit={handleAnswerSubmit} />

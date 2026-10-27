@@ -1,29 +1,66 @@
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
-import { dummyUser } from '../dummyData';
+import UserProfile from '../Components/auth_profile/UserProfile';
+import { fetchUserProfile, fetchUserQuestions, fetchUserAnswers } from '../api/profileApi';
 
 const UserProfilePage = () => {
-  // If viewing their own profile, use context. Otherwise, use dummyUser (in a real app, you'd fetch by ID)
-  const { user } = useAuth()
-  const profileUser = user || dummyUser;
+  const { id } = useParams();
+  const { user: currentUser } = useAuth();
+  
+  // If the route is /profile, or /users/:id matches the logged-in user, show their own profile
+  const targetUserId = id || currentUser?._id;
+
+  const [profileData, setProfileData] = useState(null);
+  const [userQuestions, setUserQuestions] = useState([]);
+  const [userAnswers, setUserAnswers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!targetUserId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError("No user ID provided.");
+      setIsLoading(false);
+      return;
+    }
+
+    const loadProfileData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch User Info, Questions, and Answers simultaneously
+        const [profileRes, questionsRes, answersRes] = await Promise.all([
+          fetchUserProfile(targetUserId),
+          fetchUserQuestions(targetUserId),
+          fetchUserAnswers(targetUserId)
+        ]);
+
+        setProfileData(profileRes.user || profileRes);
+        setUserQuestions(questionsRes.questions || questionsRes);
+        setUserAnswers(answersRes.answers || answersRes);
+      } catch (err) {
+        setError('Failed to load user profile.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadProfileData();
+  }, [targetUserId]);
+
+  if (isLoading) return <div className="p-8 text-center text-gray-500">Loading profile...</div>;
+  if (error || !profileData) return <div className="p-8 text-center text-red-500">{error || "User not found"}</div>;
 
   return (
     <div className="max-w-5xl mx-auto w-full">
-      <div className="flex items-center gap-6 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm mb-8">
-        <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center text-4xl font-bold">
-          {profileUser.username?.charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{profileUser.username}</h1>
-          <p className="text-gray-500 dark:text-gray-400">{profileUser.email}</p>
-        </div>
-      </div>
-
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Activity</h2>
-      <div className="p-8 text-center text-gray-500 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-        User activity (questions/answers) will be displayed here.
-      </div>
+      <UserProfile 
+        user={profileData} 
+        questions={userQuestions} 
+        answers={userAnswers} 
+      />
     </div>
-   
   );
-}
+};
+
 export default UserProfilePage;

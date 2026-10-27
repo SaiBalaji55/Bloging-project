@@ -1,5 +1,6 @@
 import TagList from './TagList';
 import VoteButtons from './VoteButtons';
+import CommentSection from '../answers/CommentSection';
 
 const QuestionDetails = ({ question, currentUserId, onEdit, onDelete, onVote }) => {
   const isAuthor = question.userId?._id === currentUserId;
@@ -40,6 +41,7 @@ const QuestionDetails = ({ question, currentUserId, onEdit, onDelete, onVote }) 
               </>
             )}
           </div>
+          <CommentSection targetId={question._id} type="question" />
           
           <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-gray-600 dark:text-gray-400">
             asked {new Date(question.createdAt).toLocaleString()} by <span className="font-medium text-blue-600 dark:text-blue-400">{question.userId?.username}</span>

@@ -1,13 +1,22 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QuestionForm from '../Components/questions/QuestionForm';
+import { createQuestion } from '../api/questionApi';
 
 const AskQuestionPage = () => {
   const navigate = useNavigate();
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleAsk = (formData) => {
-    console.log("Submitting new question:", formData);
-    alert("Question created! (Will be API call)");
-    navigate('/questions');
+  const handleAsk = async(formData) => {
+    setErrorMsg('');
+    try{
+      await createQuestion(formData);
+      navigate('/questions');
+    }
+    catch(error){
+      console.log("Failed to post question:", error);
+      setErrorMsg(error.response?.data?.message || "Failed to post question. Please try again.")
+    }
   };
 
   return (
@@ -22,6 +31,12 @@ const AskQuestionPage = () => {
           <li>Add code snippets and error logs if applicable.</li>
         </ul>
       </div>
+
+      {errorMsg && (
+        <div className="p-3 mb-6 text-sm text-red-600 bg-red-50 rounded border border-red-200">
+          {errorMsg}
+        </div>
+      )}
 
       <QuestionForm onSubmit={handleAsk} />
     </div>

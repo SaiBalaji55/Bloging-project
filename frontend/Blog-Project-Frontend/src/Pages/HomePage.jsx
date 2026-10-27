@@ -1,10 +1,28 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import QuestionList from '../Components/questions/QuestionList';
-import { dummyQuestions } from '../dummyData';
+import { fetchQuestions } from '../api/questionApi';
 
 const HomePage = () => {
-  // Show only the 3 most recent questions for the home page
-  const recentQuestions = dummyQuestions.slice(0, 3);
+  const [recentQuestions, setRecentQuestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(()=>{
+    const loadRecentQuesetions = async()=>{
+      try{
+        const data = await fetchQuestions();
+        const questionsArray = data.questions || data;
+        setRecentQuestions(questionsArray.slice(0,3));
+      }
+      catch(error){
+        console.error("Failed to load recent questions:",error);
+      }
+      finally{
+        setIsLoading(false);
+      }
+    };
+    loadRecentQuesetions();
+  },[])
 
   return (
     <div className="flex flex-col gap-12 w-full max-w-5xl mx-auto py-8">
@@ -34,7 +52,12 @@ const HomePage = () => {
             View all
           </Link>
         </div>
-        <QuestionList questions={recentQuestions} />
+
+        {isLoading ? (
+          <div className="p-4 text-center text-gray-500">Loading recent questions...</div>
+        ) : (
+          <QuestionList questions={recentQuestions} emptyMessage="No questions asked yet." />
+        )}
       </div>
     </div>
   );

@@ -1,19 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SearchBar from '../Components/questions/SearchBar.jsx';
 import QuestionList from '../Components/questions/QuestionList';
 import Pagination from '../Components/questions/Pagination';
-import { dummyQuestions } from '../dummyData';
+
+import { fetchQuestions } from '../api/questionApi.js';
 
 const QuestionsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Mock search filtering based on dummy data
-  const filteredQuestions = dummyQuestions.filter(q => 
-    q.questionTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    q.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const [questions, setQuestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadQuestions = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchQuestions(searchQuery);
+        console.log("Backend Response:", data)
+        setQuestions(data.questions);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load Questions. Is the Backend running?');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadQuestions();
+  }, [searchQuery]);
 
   return (
     <div className="flex flex-col max-w-5xl mx-auto w-full gap-6">
@@ -32,25 +49,23 @@ const QuestionsPage = () => {
       </div>
 
       {/* Search and Filter Section */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="w-full md:w-2/3">
-          <SearchBar 
-            onSearch={setSearchQuery} 
-            placeholder="Search by title or tag..." 
-          />
-        </div>
-        <div className="w-full md:w-auto text-sm text-gray-500 dark:text-gray-400 font-medium">
-          {filteredQuestions.length} questions
-        </div>
-      </div>
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <SearchBar 
+          onSearch={setSearchQuery} 
+          placeholder="Search by title or tag..." 
+        />
+      </div> {/* <-- ADDED MISSING CLOSING TAG HERE */}
 
-      {/* Questions Feed */}
-      <QuestionList 
-        questions={filteredQuestions} 
-        emptyMessage="No questions match your search criteria." 
-      />
+      {/* 4. Handle Loading, Error, and Success states */}
+      {isLoading ? (
+        <div className="p-8 text-center text-gray-500">Loading questions...</div>
+      ) : error ? (
+        <div className="p-4 bg-red-50 text-red-600 rounded">{error}</div>
+      ) : (
+        <QuestionList questions={questions} emptyMessage="No questions found." />
+      )}
 
-      {/* Pagination (Mocked to 1 page for now) */}
+      {/* Pagination */}
       <Pagination 
         currentPage={currentPage} 
         totalPages={1} 

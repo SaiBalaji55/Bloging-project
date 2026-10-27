@@ -1,20 +1,28 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '../Context/AuthContext';
 import Login from '../Components/auth_profile/Login'; // Import the form component
 
 const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-
+  const [errorMsg, setErrorMsg] = useState('');
   // This function is triggered when the Login component submits its form
-  const handleLoginSubmit = (formData) => {
-    console.log("User trying to log in with:", formData.email);
+  const handleLoginSubmit = async (formData) => {
+    setErrorMsg('')
+    console.log("User trying to log in with:", formData.username);
     
     // 1. Call the mock login function from AuthContext
-    login(); 
+    const result = await login(formData);
     
     // 2. Redirect the user back to the home page
+    if(result.success){
     navigate('/'); 
+    }
+    else {
+      // 2. Set the error message if login fails
+      setErrorMsg(result.error || "Invalid login credentials"); 
+    }
   };
 
   return (
@@ -24,6 +32,12 @@ const LoginPage = () => {
         <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
           Welcome Back to DevQ&A
         </h1>
+
+        {errorMsg && (
+          <div className="w-full p-3 mb-4 text-sm text-red-600 bg-red-50 rounded-md border border-red-200 text-center">
+            {errorMsg}
+          </div>
+        )}
         
         {/* Render the reusable form component here */}
         <Login onSubmit={handleLoginSubmit} isLoading={false} />

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext'; // Import the AuthContext
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   
-  // Replace with your actual auth context/state
-  const isAuthenticated = false; 
+  // Pull the real state and functions from your AuthContext
+  const { user, isAuthenticated, logout } = useAuth(); 
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -41,8 +42,14 @@ const Navbar = () => {
         <div className="flex items-center gap-4 flex-shrink-0">
           {isAuthenticated ? (
             <div className="flex items-center gap-3">
-              <Link to="/profile" className="text-sm font-medium hover:text-blue-600">Profile</Link>
-              <button className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 rounded-md transition">
+              {/* Navigate to the user's specific profile page */}
+              <Link to={`/users/${user?._id}`} className="text-sm font-bold text-gray-900 dark:text-white hover:text-blue-600">
+                {user?.username}
+              </Link>
+              <button 
+                onClick={logout} // Connect the logout function
+                className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-800 dark:text-white dark:bg-gray-700 rounded-md transition"
+              >
                 Logout
               </button>
             </div>

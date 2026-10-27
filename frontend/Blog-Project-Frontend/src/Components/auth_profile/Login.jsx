@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 const Login = ({ onSubmit, isLoading }) => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  
+  const [formData, setFormData] = useState({ username: '', password: '' });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -11,12 +12,15 @@ const Login = ({ onSubmit, isLoading }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4 w-full">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+        {/* 2. Change the label to Username */}
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
+        
+        {/* 3. Change input type to text, and update the onChange handler to use 'username' */}
         <input 
-          type="email" 
+          type="text" 
           required 
-          value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
+          value={formData.username}
+          onChange={(e) => setFormData({...formData, username: e.target.value})}
           className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" 
         />
       </div>
