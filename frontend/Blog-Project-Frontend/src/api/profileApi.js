@@ -24,3 +24,8 @@ export const fetchUserAnswers = async(userId)=>{
     const response = await axiosClient.get(`/users/${userId}/answers`);
     return response.data;
 }
+
+export const fetchAllUsers = async ()=>{
+    const response = await axiosClient.get('/users');
+    return response.data;
+}

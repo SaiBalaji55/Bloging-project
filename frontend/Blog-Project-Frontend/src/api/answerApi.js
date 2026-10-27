@@ -5,12 +5,12 @@ export const fetchAnswers = async (questionId)=>{
     return response.data;
 }
 
-export const createAnswers = async (questionId, answerData)=>{
+export const createAnswer = async (questionId, answerData)=>{
     const response = await axiosClient.post(`/questions/${questionId}/answers`, answerData);
     return response.data;
 }
 
-export const deleteAnswers = async (id)=>{
+export const deleteAnswer = async (id)=>{
     const response = await axiosClient.delete(`/answers/${id}`);
     return response.data;
 }

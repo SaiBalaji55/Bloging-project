@@ -26,7 +26,7 @@ export const deleteQuestion = async (id)=>{
     return response.data;
 }
 
-export const voteQuestion = async (id, value)=>{
-    const response = await axiosClient.post(`/questions/${id}/vote`, {value});
+export const voteQuestion = async (id, voteValue)=>{
+    const response = await axiosClient.post(`/questions/${id}/vote`, {value: voteValue});
     return response.data;
 }
