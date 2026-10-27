@@ -19,9 +19,14 @@ const answerSchema = new mongoose.Schema({
     isAccepted: {
         type: Boolean,
         default: false
+    },
+    voteScore: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true
 });
 
-export default mongoose.model("Answer", answerSchema);
+const Answer = mongoose.model("Answer", answerSchema);
+export default Answer;

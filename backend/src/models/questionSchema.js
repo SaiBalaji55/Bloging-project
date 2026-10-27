@@ -36,6 +36,10 @@ const questionSchema = new mongoose.Schema({
         enum: ['staging_ground', 'public_feed'],
         default: 'staging_ground' 
     },
+    voteScore: {
+        type: Number,
+        default: 0
+    },
     createdAt: { type: Date, default: Date.now }
 }, {
     timestamps: true

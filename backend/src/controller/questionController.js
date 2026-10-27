@@ -1,4 +1,6 @@
 import Question from '../models/questionSchema.js';
+import UserSchema from '../models/userSchema.js';
+
 
 export const createQuestion = async(req, res)=>{
     const {questionType, questionTitle, questionDescription, tags, postingDestination}= req.body;
@@ -108,6 +110,61 @@ export const deleteQuestion = async (req, res) => {
         await Question.findByIdAndDelete(req.params.id);
 
         res.status(200).json({ message: 'Question deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getAllQuestions = async (req, res) => {
+    try {
+        const questions = await Question.aggregate([
+            {
+                // 1. Join the Answers collection
+                $lookup: {
+                    from: "answers", // Must match your MongoDB answers collection name
+                    localField: "_id",
+                    foreignField: "questionId",
+                    as: "answers"
+                }
+            },
+            {
+                // 2. Join the Users collection (Replaces .populate)
+                $lookup: {
+                    from: "userschemas", // Must match your MongoDB users collection name (usually 'users')
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            {
+                // 3. Convert the joined user array into a single object
+                $unwind: {
+                    path: "$user",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                // 4. Calculate fields and reassign userId
+                $addFields: {
+                    answerCount: { $size: "$answers" },
+                    hasAcceptedAnswer: {
+                        $in: [true, "$answers.isAccepted"]
+                    },
+                    userId: "$user" // Pass the full user object to the frontend
+                }
+            },
+            {
+                // 5. Clean up the response (remove heavy answer arrays and passwords)
+                $project: { 
+                    answers: 0, 
+                    user: 0, 
+                    "userId.password": 0 
+                }
+            },
+            { $sort: { createdAt: -1 } }
+        ]);
+
+        res.status(200).json({questions});
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

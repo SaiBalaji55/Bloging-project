@@ -1,11 +1,12 @@
 import express from 'express';
 import { authMiddleware } from '../middleware/authMiddleware.js';
-import { createQuestion, getQuestions, getQuestionById, updateQuestion, deleteQuestion } from '../controller/questionController.js';
+import { createQuestion, getQuestionById, updateQuestion, deleteQuestion, getAllQuestions } from '../controller/questionController.js';
 
 const router = express.Router();
 
 router.route('/')
-    .get(getQuestions)
+    // 1. FIX: Only use getAllQuestions here
+    .get(getAllQuestions)
     .post(authMiddleware, createQuestion);
 
 router.route('/:id')
@@ -13,4 +14,4 @@ router.route('/:id')
     .patch(authMiddleware, updateQuestion)
     .delete(authMiddleware, deleteQuestion);
 
-export default router
+export default router;
