@@ -6,7 +6,7 @@ export const fetchTags = async ()=>{
 }
 
 export const fetchQuestionsByTag = async(tagName)=>{
-    const response = await axiosClient.get(`/tags/${tagName}/questions`);
+    const response = await axiosClient.get(`/questions?tag=${tagName}`);
     return response.data;
 }
 

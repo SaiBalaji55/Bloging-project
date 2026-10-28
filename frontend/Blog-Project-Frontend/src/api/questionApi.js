@@ -30,3 +30,8 @@ export const voteQuestion = async (id, voteValue)=>{
     const response = await axiosClient.post(`/questions/${id}/vote`, {value: voteValue});
     return response.data;
 }
+
+export const fetchQuestionsByTag = async (tagName)=>{
+    const response = await axiosClient.get(`/questions?tag=${tagName}`);
+    return response.data;
+}
