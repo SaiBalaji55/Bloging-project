@@ -1,53 +1,51 @@
-import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useAuth } from '../Context/AuthContext';
-import Login from '../Components/auth_profile/Login'; // Import the form component
 
-const LoginPage = () => {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const [errorMsg, setErrorMsg] = useState('');
-  // This function is triggered when the Login component submits its form
-  const handleLoginSubmit = async (formData) => {
-    setErrorMsg('')
-    console.log("User trying to log in with:", formData.username);
-    
-    // 1. Call the mock login function from AuthContext
-    const result = await login(formData);
-    
-    // 2. Redirect the user back to the home page
-    if(result.success){
-    navigate('/'); 
-    }
-    else {
-      // 2. Set the error message if login fails
-      setErrorMsg(result.error || "Invalid login credentials"); 
-    }
+const Login = ({ onSubmit, isLoading }) => {
+  // Reverted back to username
+  const [formData, setFormData] = useState({ username: '', password: '' });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 p-8 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg flex flex-col items-center">
-        
-        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
-          Welcome Back to DevQ&A
-        </h1>
-
-        {errorMsg && (
-          <div className="w-full p-3 mb-4 text-sm text-red-600 bg-red-50 rounded-md border border-red-200 text-center">
-            {errorMsg}
-          </div>
-        )}
-        
-        {/* Render the reusable form component here */}
-        <Login onSubmit={handleLoginSubmit} isLoading={false} />
-
-        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account? <Link to="/register" className="text-blue-600 hover:underline">Sign up</Link>
-        </p>
+    <form onSubmit={handleSubmit} className="space-y-5 w-full">
+      <div>
+        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 tracking-wide">
+          Username
+        </label>
+        <input 
+          type="text" 
+          required 
+          value={formData.username}
+          onChange={(e) => setFormData({...formData, username: e.target.value})}
+          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 dark:text-white outline-none shadow-sm" 
+          placeholder="Enter your username"
+        />
       </div>
-    </div>
+      <div>
+        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 tracking-wide">
+          Password
+        </label>
+        <input 
+          type="password" 
+          required 
+          value={formData.password}
+          onChange={(e) => setFormData({...formData, password: e.target.value})}
+          className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 dark:text-white outline-none shadow-sm" 
+          placeholder="••••••••"
+        />
+      </div>
+      <button 
+        type="submit" 
+        disabled={isLoading}
+        className="w-full py-3 px-4 mt-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-sm transition-all duration-200"
+      >
+        {isLoading ? 'Logging in...' : 'Log In'}
+      </button>
+    </form>
   );
 };
 
-export default LoginPage;
+export default Login;
