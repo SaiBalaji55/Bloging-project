@@ -9,7 +9,7 @@ const SearchBar = ({ initialValue = '', onSearch, placeholder = 'Search question
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-2xl">
+    <form onSubmit={handleSubmit} className="flex w-full max-w-2xl gap-x-2">
       <input
         type="text"
         value={query}
@@ -19,7 +19,7 @@ const SearchBar = ({ initialValue = '', onSearch, placeholder = 'Search question
       />
       <button 
         type="submit"
-        className="px-6 py-2 bg-blue-600 text-white font-medium rounded-r-md hover:bg-blue-700 transition"
+        className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition"
       >
         Search
       </button>
