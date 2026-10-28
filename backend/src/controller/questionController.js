@@ -117,44 +117,59 @@ export const deleteQuestion = async (req, res) => {
 
 export const getAllQuestions = async (req, res) => {
     try {
-        const questions = await Question.aggregate([
+        const { tag, search } = req.query;
+        const matchStage = {};
+
+        // 1. Build the filter query if a tag or search term is provided
+        if (tag) {
+            matchStage.tags = tag.toLowerCase();
+        }
+        if (search) {
+            matchStage.questionTitle = { $regex: search, $options: 'i' };
+        }
+
+        // 2. Build the aggregation pipeline
+        const pipeline = [];
+
+        // Only add the $match stage if there are filters to apply
+        if (Object.keys(matchStage).length > 0) {
+            pipeline.push({ $match: matchStage });
+        }
+
+        // 3. Add the rest of the aggregation steps (Lookups & calculations)
+        pipeline.push(
             {
-                // 1. Join the Answers collection
                 $lookup: {
-                    from: "answers", // Must match your MongoDB answers collection name
+                    from: "answers", 
                     localField: "_id",
                     foreignField: "questionId",
                     as: "answers"
                 }
             },
             {
-                // 2. Join the Users collection (Replaces .populate)
                 $lookup: {
-                    from: "userschemas", // Must match your MongoDB users collection name (usually 'users')
+                    from: "userschemas", // Ensure this matches your DB collection name
                     localField: "userId",
                     foreignField: "_id",
                     as: "user"
                 }
             },
             {
-                // 3. Convert the joined user array into a single object
                 $unwind: {
                     path: "$user",
                     preserveNullAndEmptyArrays: true
                 }
             },
             {
-                // 4. Calculate fields and reassign userId
                 $addFields: {
                     answerCount: { $size: "$answers" },
                     hasAcceptedAnswer: {
                         $in: [true, "$answers.isAccepted"]
                     },
-                    userId: "$user" // Pass the full user object to the frontend
+                    userId: "$user"
                 }
             },
             {
-                // 5. Clean up the response (remove heavy answer arrays and passwords)
                 $project: { 
                     answers: 0, 
                     user: 0, 
@@ -162,9 +177,12 @@ export const getAllQuestions = async (req, res) => {
                 }
             },
             { $sort: { createdAt: -1 } }
-        ]);
+        );
 
-        res.status(200).json({questions});
+        // 4. Execute the pipeline
+        const questions = await Question.aggregate(pipeline);
+
+        res.status(200).json({ questions });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
