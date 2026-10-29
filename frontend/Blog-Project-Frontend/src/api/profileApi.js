@@ -29,3 +29,8 @@ export const fetchAllUsers = async ()=>{
     const response = await axiosClient.get('/users');
     return response.data;
 }
+
+export const fetchDashboardStats = async()=>{
+    const response = await axiosClient.get('/profile/dashboard');
+    return response.data;
+}
