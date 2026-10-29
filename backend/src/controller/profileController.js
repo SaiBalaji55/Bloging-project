@@ -2,6 +2,7 @@ import Question from '../models/questionSchema.js';
 import Answer from '../models/answerSchema.js';
 import User from '../models/userSchema.js';
 import Comment from '../models/commentSchema.js'
+import mongoose from 'mongoose';
 
 export const getTags = async(req, res)=>{
     try{
