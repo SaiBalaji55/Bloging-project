@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './Context/AuthContext';
 
 // Layout & Route Components
-import Layout from './components/layout/Layout';
+import Layout from './Components/layout/Layout';
 import ProtectedRoute from './Components/layout/ProtectedRoute';
 
 // Page Components
@@ -18,6 +18,7 @@ import LoginPage from './Pages/LoginPage';
 import RegisterPage from './Pages/RegisterPage';
 import NotFoundPage from './Pages/NotFoundPage';
 import UsersPage from './Pages/UsersPage';
+import DashboardPage from './Pages/DashboardPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
 
           {/* Main Layout (Wraps these pages with Navbar, Sidebar, and Footer) */}
           <Route element={<Layout />}>
+          <Route path="/dashboard" element={<DashboardPage/>} />
             
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
