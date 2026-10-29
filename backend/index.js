@@ -7,7 +7,7 @@ import questionRoutes from './src/routes/questionRoutes.js';
 import { questionAnswerRoutes, answerRoutes } from './src/routes/answerRoutes.js';
 import { questionVoteRoutes, answerVoteRoutes } from './src/routes/voteRoutes.js';
 import { questionCommentRoutes, answerCommentRoutes, commentRoutes } from './src/routes/commentRoutes.js';
-import { tagRoutes, userRoutes } from './src/routes/profileRoutes.js';
+import { tagRoutes, userRoutes, dashboardRoutes } from './src/routes/profileRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -38,6 +38,7 @@ app.use('/api/comments', commentRoutes);
 
 app.use('/api/tags', tagRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/profile', dashboardRoutes)
 
 app.listen(process.env.PORT, ()=>{
     console.log(`Server is running on port ${process.env.PORT}`)

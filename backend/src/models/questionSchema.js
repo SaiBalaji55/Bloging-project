@@ -22,7 +22,7 @@ const questionSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 75,
-        maxlength: 150
+        maxlength: 1500
     },
     tags: [{
         type: String,
