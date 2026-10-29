@@ -18,15 +18,14 @@ const QuestionForm = ({ initialData = {}, onSubmit, isSubmitting }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Schema validation limits
-    if (formData.questionTitle.length < 15 || formData.questionTitle.length > 30) {
-      return setError('Title must be between 15 and 30 characters.');
+    if (formData.questionTitle.length < 15 || formData.questionTitle.length > 150) {
+      return setError('Title must be between 15 and 150 characters.');
     }
-    if (formData.questionDescription.length < 75 || formData.questionDescription.length > 150) {
-      return setError('Description must be between 75 and 150 characters.');
+    // FIX: Updated Description validation to allow up to 5000 characters
+    if (formData.questionDescription.length < 75 || formData.questionDescription.length > 5000) {
+      return setError('Description must be between 75 and 5000 characters.');
     }
 
-    // Format tags into array
     const tagArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
     if (!tagArray.length) {
       return setError('At least one tag is required.');
@@ -52,22 +51,24 @@ const QuestionForm = ({ initialData = {}, onSubmit, isSubmitting }) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-900 dark:text-gray-200 mb-1">Title</label>
-        <p className="text-xs text-gray-500 mb-2">Be specific and imagine you’re asking a question to another person. (15 - 30 chars)</p>
+        <p className="text-xs text-gray-500 mb-2">Be specific and imagine you’re asking a question to another person. (15 - 150 chars)</p>
         <input 
           type="text" name="questionTitle" value={formData.questionTitle} onChange={handleChange} required
           className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
-        <div className="text-xs text-right mt-1 text-gray-500">{formData.questionTitle.length}/30</div>
+        <div className="text-xs text-right mt-1 text-gray-500">{formData.questionTitle.length}/150</div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-900 dark:text-gray-200 mb-1">Description</label>
-        <p className="text-xs text-gray-500 mb-2">Include all the information someone would need to answer your question. (75 - 150 chars)</p>
+        {/* FIX: Updated helper text to indicate 5000 max chars */}
+        <p className="text-xs text-gray-500 mb-2">Include all the information someone would need to answer your question. (75 - 5000 chars)</p>
         <textarea 
-          name="questionDescription" rows="5" value={formData.questionDescription} onChange={handleChange} required
+          name="questionDescription" rows="8" value={formData.questionDescription} onChange={handleChange} required
           className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500"
         />
-        <div className="text-xs text-right mt-1 text-gray-500">{formData.questionDescription.length}/150</div>
+        {/* FIX: Updated dynamic counter to display out of 5000 */}
+        <div className="text-xs text-right mt-1 text-gray-500">{formData.questionDescription.length}/5000</div>
       </div>
 
       <div>

@@ -1,20 +1,18 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import { loginUser } from '../api/authApi.js';
-import axiosClient from '../api/axiosConfig.js'; // Import your axios config to call the /me route
+import axiosClient from '../api/axiosConfig.js'; 
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); 
-  const [isLoading, setIsLoading] = useState(true); // Start as true so the app waits for the token check
+  const [isLoading, setIsLoading] = useState(true); 
 
-  // 1. Check for token and auto-login when the page refreshes
   useEffect(() => {
     const checkUserSession = async () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          // Call your 'me' endpoint from authController.js
           const response = await axiosClient.get('/auth/me');
           setUser(response.data.user);
         } catch (error) {
@@ -23,6 +21,7 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         }
       }
+      // Finished checking (whether successful or not)
       setIsLoading(false);
     };
 
@@ -35,7 +34,6 @@ export const AuthProvider = ({ children }) => {
       const response = await loginUser(formData);
       localStorage.setItem('token', response.token);
       
-      // 2. FIX: Set the user using the username from the backend response
       setUser(response.user); 
       
       return { success: true };
@@ -54,7 +52,12 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, isLoading }}>
-      {children}
+      {/* FIX: Only render the app once the token check is completely finished */}
+      {!isLoading ? children : (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+           <div className="text-gray-500 font-medium">Loading session...</div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 };

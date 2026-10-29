@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const SearchBar = ({ initialValue = '', onSearch, placeholder = 'Search questions...' }) => {
   const [query, setQuery] = useState(initialValue);
+
+  // FIX: Update local input if the URL changes from the top navbar
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setQuery(initialValue);
+  }, [initialValue]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

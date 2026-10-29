@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom'; // 1. Import useSearchParams
 import SearchBar from '../Components/questions/SearchBar.jsx';
 import QuestionList from '../Components/questions/QuestionList';
 import Pagination from '../Components/questions/Pagination';
@@ -7,20 +7,30 @@ import Pagination from '../Components/questions/Pagination';
 import { fetchQuestions } from '../api/questionApi.js';
 
 const QuestionsPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  // 2. Read the search term directly from the URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search') || '';
 
+  const [currentPage, setCurrentPage] = useState(1);
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // 3. Update the URL if the user searches using the middle search bar
+  const handleLocalSearch = (query) => {
+    if (query) {
+      setSearchParams({ search: query });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   useEffect(() => {
     const loadQuestions = async () => {
       setIsLoading(true);
       try {
         const data = await fetchQuestions(searchQuery);
-        console.log("Backend Response:", data)
-        setQuestions(data.questions);
+        setQuestions(data.questions || data);
         setError(null);
       } catch (err) {
         setError('Failed to load Questions. Is the Backend running?');
@@ -30,16 +40,12 @@ const QuestionsPage = () => {
       }
     };
     loadQuestions();
-  }, [searchQuery]);
+  }, [searchQuery]); // 4. Refetches automatically when the URL changes
 
   return (
-    // The overall page background uses a subtle gray to make the white cards pop
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 w-full">
-      
-      {/* Max width container keeps it from stretching too wide on huge monitors */}
       <div className="max-w-5xl mx-auto flex flex-col gap-6">
         
-        {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
             All Questions
@@ -52,15 +58,14 @@ const QuestionsPage = () => {
           </Link>
         </div>
 
-        {/* Search and Filter Section */}
         <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
           <SearchBar 
-            onSearch={setSearchQuery} 
+            initialValue={searchQuery} // 5. Pass the URL value into the SearchBar
+            onSearch={handleLocalSearch} 
             placeholder="Search by title or tag..." 
           />
         </div>
 
-        {/* Handle Loading, Error, and Success states */}
         {isLoading ? (
           <div className="p-12 text-center text-gray-500 font-medium bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
             Loading questions...
@@ -75,7 +80,6 @@ const QuestionsPage = () => {
           </div>
         )}
 
-        {/* Pagination */}
         {!isLoading && !error && (
           <div className="mt-2">
             <Pagination 
