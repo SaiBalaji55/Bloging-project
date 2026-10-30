@@ -1,20 +1,73 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 import ProfileTabs from './ProfileTabs';
 import ReputationBadge from './ReputationBadge';
 import QuestionList from '../questions/QuestionList'; 
+import { updateUserAvatar } from '../../api/profileApi'; // Import the new API function
 
 const UserProfile = ({ user, questions = [], answers = [] }) => {
   const [activeTab, setActiveTab] = useState('questions');
+  
+const { user: currentUser, updateUserProfileContext } = useAuth(); 
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  // 1. Determine if this is the logged-in user's profile FIRST
+  const isOwnProfile = currentUser?._id === user?._id;
+
+  // 2. Prioritize the globally saved context avatar if viewing own profile
+  const [displayedAvatar, setDisplayedAvatar] = useState(
+    isOwnProfile ? (currentUser?.profilePicture || user?.profilePicture) : user?.profilePicture
+  );
+
+  // 3. Keep everything perfectly in sync when data changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDisplayedAvatar(
+      isOwnProfile ? (currentUser?.profilePicture || user?.profilePicture) : user?.profilePicture
+    );
+  }, [user?.profilePicture, currentUser?.profilePicture, isOwnProfile]);
+  // const isOwnProfile = currentUser?._id === user?._id;
+
+  const availableAvatars = [
+    '/avatars/avatar1.png',
+    '/avatars/avatar2.png',
+    '/avatars/avatar3.png',
+    '/avatars/avatar4.png',
+    '/avatars/avatar5.png'
+  ];
+
+  const handleAvatarSelect = async (avatarUrl) => {
+    setIsUpdating(true);
+    try {
+      // Use the clean API function instead of hardcoded fetch
+      await updateUserAvatar(user._id, avatarUrl);
+
+      // Update the big picture on the current page instantly
+      setDisplayedAvatar(avatarUrl);
+
+      // Update global context so Navbar updates instantly
+      if (updateUserProfileContext) {
+        updateUserProfileContext({ profilePicture: avatarUrl });
+      }
+    } catch (error) {
+      console.error("Avatar update failed:", error);
+      alert("Could not update profile picture");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div className="w-full">
-      {/* Profile Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm mb-8">
         
-        {/* Upgraded Gradient Avatar */}
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold shadow-md shrink-0">
-          {user?.username?.charAt(0).toUpperCase()}
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-bold shadow-md shrink-0 overflow-hidden">
+          {displayedAvatar ? (
+            <img src={displayedAvatar} alt={user?.username} className="w-full h-full object-cover bg-white" />
+          ) : (
+            user?.username?.charAt(0).toUpperCase()
+          )}
         </div>
         
         <div className="flex-1 w-full">
@@ -27,9 +80,8 @@ const UserProfile = ({ user, questions = [], answers = [] }) => {
             <ReputationBadge score={user?.reputation || 125} />
           </div>
 
-          {/* Student / Professional Details Block */}
           {user?.isStudentorProfessional && (
-            <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 w-full sm:w-fit">
+            <div className="flex flex-col gap-2 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-100 dark:border-gray-700 w-full sm:w-fit mb-4">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider w-fit
                 ${user.isStudentorProfessional === 'Student' 
                   ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' 
@@ -54,20 +106,36 @@ const UserProfile = ({ user, questions = [], answers = [] }) => {
             </div>
           )}
 
+          {isOwnProfile && (
+            <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+              <h3 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">Choose an Avatar</h3>
+              <div className="flex flex-wrap gap-3">
+                {availableAvatars.map((avatar, index) => (
+                  <button
+                    key={index}
+                    disabled={isUpdating}
+                    onClick={() => handleAvatarSelect(avatar)}
+                    className={`w-12 h-12 rounded-full border-2 overflow-hidden transition-all ${
+                      displayedAvatar === avatar ? 'border-blue-500 scale-110 shadow-md' : 'border-transparent hover:border-blue-300'
+                    }`}
+                    title={`Select Avatar ${index + 1}`}
+                  >
+                    <img src={avatar} alt={`Avatar ${index + 1}`} className="w-full h-full object-cover bg-gray-100 dark:bg-gray-700" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Tabs */}
       <ProfileTabs 
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         counts={{ questions: questions.length, answers: answers.length }} 
       />
 
-      {/* Content Rendering Area */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-1 min-h-[300px] mt-4">
-        
-        {/* Render Questions */}
         {activeTab === 'questions' && (
           <div className="p-4">
             {questions.length > 0 ? (
@@ -78,7 +146,6 @@ const UserProfile = ({ user, questions = [], answers = [] }) => {
           </div>
         )}
         
-        {/* Render Answers */}
         {activeTab === 'answers' && (
           <div className="flex flex-col gap-4 p-4">
             {answers.length > 0 ? (
@@ -91,7 +158,6 @@ const UserProfile = ({ user, questions = [], answers = [] }) => {
                       {a.questionId?.questionTitle || "View Question"}
                     </Link>
                   </div>
-                  {/* Safely render the HTML content of the answer */}
                   <div className="text-gray-800 dark:text-gray-200 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: a.content || a.answerText || a.body }} />
                 </div>
               ))

@@ -34,3 +34,12 @@ export const fetchDashboardStats = async()=>{
     const response = await axiosClient.get('/profile/dashboard');
     return response.data;
 }
+
+// Add this to the bottom of profileApi.js
+export const updateUserAvatar = async (userId, avatarUrl) => {
+    // axiosClient automatically uses your VITE_API_BASE_URL and attaches the token
+    const response = await axiosClient.put(`/users/${userId}/avatar`, { 
+        profilePicture: avatarUrl 
+    });
+    return response.data;
+};
