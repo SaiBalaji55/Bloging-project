@@ -1,5 +1,5 @@
 import express from 'express';
-import {getTags, getQuestionsByTags, getUserProfile, getUserQuestions, getUserAnswers, getAllUsers, getDashboardStats} from '../controller/profileController.js';
+import {getTags, getQuestionsByTags, getUserProfile, getUserQuestions, getUserAnswers, getAllUsers, getDashboardStats, updateAvatar} from '../controller/profileController.js';
 import {authMiddleware } from '../middleware/authMiddleware.js';
 
 export const tagRoutes = express.Router();
@@ -16,3 +16,5 @@ userRoutes.get('/', getAllUsers);
 userRoutes.get('/:id', getUserProfile);
 userRoutes.get('/:id/questions', getUserQuestions);
 userRoutes.get('/:id/answers', getUserAnswers);
+
+userRoutes.put('/:id/avatar', authMiddleware, updateAvatar);

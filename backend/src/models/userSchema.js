@@ -60,7 +60,11 @@ const userSchema = new mongoose.Schema({
     companyname:{
         type: String,
         required: function() {return this.isStudentorProfessional === 'Professional'}
-    }
+    },
+    profilePicture: {
+        type: String,
+        default: ""
+    },
 }, {timestamp: true})
 
 userSchema.pre("save", async function(next){

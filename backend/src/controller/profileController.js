@@ -126,3 +126,30 @@ export const getDashboardStats = async (req, res) => {
         res.status(500).json({ message: "Server error fetching stats: " + error.message });
     }
 };
+
+// Add this new function
+export const updateAvatar = async (req, res) => {
+  try {
+    const { profilePicture } = req.body;
+    
+    // Import your User model at the top of the file if it isn't already there
+    // const User = require('../models/User'); (or however you named it)
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id, 
+      { profilePicture: profilePicture },
+      { returnDocument: 'after' }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Avatar updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Avatar update error:", error);
+    res.status(500).json({ message: "Server error updating avatar" });
+  }
+};
+
+// Don't forget to export it!
