@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 const QuestionForm = ({ initialData = {}, onSubmit, isSubmitting }) => {
   const [formData, setFormData] = useState({
@@ -10,10 +12,34 @@ const QuestionForm = ({ initialData = {}, onSubmit, isSubmitting }) => {
   });
   const [error, setError] = useState('');
 
+  // Define the custom toolbar to match the advanced layout
+  const modules = useMemo(() => ({
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['link', 'image'],
+      ['clean']
+    ],
+  }), []);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
   };
+
+  const handleDescriptionChange = (value) => {
+    setFormData({...formData, questionDescription: value });
+    setError('');
+  }
+
+  const getTextLength = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent.trim().length;
+  };
+
+  const currentLength = getTextLength(formData.questionDescription);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -21,9 +47,9 @@ const QuestionForm = ({ initialData = {}, onSubmit, isSubmitting }) => {
     if (formData.questionTitle.length < 15 || formData.questionTitle.length > 150) {
       return setError('Title must be between 15 and 150 characters.');
     }
-    // FIX: Updated Description validation to allow up to 5000 characters
-    if (formData.questionDescription.length < 75 || formData.questionDescription.length > 5000) {
-      return setError('Description must be between 75 and 5000 characters.');
+    
+    if (currentLength < 75 || currentLength > 5000) {
+      return setError('Description must be between 75 and 5000 characters of text.');
     }
 
     const tagArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
@@ -61,14 +87,19 @@ const QuestionForm = ({ initialData = {}, onSubmit, isSubmitting }) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-900 dark:text-gray-200 mb-1">Description</label>
-        {/* FIX: Updated helper text to indicate 5000 max chars */}
         <p className="text-xs text-gray-500 mb-2">Include all the information someone would need to answer your question. (75 - 5000 chars)</p>
-        <textarea 
-          name="questionDescription" rows="8" value={formData.questionDescription} onChange={handleChange} required
-          className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-blue-500"
-        />
-        {/* FIX: Updated dynamic counter to display out of 5000 */}
-        <div className="text-xs text-right mt-1 text-gray-500">{formData.questionDescription.length}/5000</div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded mb-1">
+          <ReactQuill 
+            theme="snow" 
+            value={formData.questionDescription} 
+            onChange={handleDescriptionChange}
+            modules={modules}
+            className="text-gray-900 dark:text-white"
+          />
+        </div>
+        
+        <div className="text-xs text-right mt-1 text-gray-500">{currentLength}/5000</div>
       </div>
 
       <div>

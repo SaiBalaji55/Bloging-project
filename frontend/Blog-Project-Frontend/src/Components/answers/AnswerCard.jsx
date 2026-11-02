@@ -1,7 +1,8 @@
 import VoteButtons from '../questions/VoteButtons';
 import AcceptAnswerButton from './AcceptAnswerButton';
-import CommentList from './CommentList';
 import CommentSection from './CommentSection';
+import DOMPurify from 'dompurify';
+import 'react-quill-new/dist/quill.snow.css';
 
 const AnswerCard = ({ 
   answer, 
@@ -19,7 +20,6 @@ const AnswerCard = ({
   return (
     <div className={`flex gap-4 p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 ${answer.isAccepted ? 'bg-green-50/30 dark:bg-green-900/10' : ''}`}>
       
-      {/* Left Column: Voting and Accepted Checkmark */}
       <div className="shrink-0 flex flex-col items-center mt-2">
         <VoteButtons 
           score={voteScore} 
@@ -34,13 +34,14 @@ const AnswerCard = ({
         />
       </div>
 
-      {/* Right Column: Content and Meta */}
       <div className="flex-1 min-w-0">
-        <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap mb-6">
-          {answer.content}
-        </div>
+        <div 
+          className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 mb-8 whitespace-pre-wrap"
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(answer.content) }}
+        />
 
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-800">
+        {/* Row 1: Actions and Metadata */}
+        <div className="flex items-center justify-between mt-6">
           <div className="flex gap-4">
             {isAuthor && (
               <button 
@@ -57,15 +58,12 @@ const AnswerCard = ({
           </div>
         </div>
 
-        {/* FIX: Use answer._id here */}
-        <CommentSection targetId={answer._id} type='answer'/>
-
-        {/* Nested Comments Section */}
-        <div className="mt-4 pt-4">
-          <CommentList 
-            comments={answer.comments || []} 
-            itemId={answer._id} 
-            itemType="Answer" 
+        {/* Row 2: Divider and Comment Section */}
+        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
+          <CommentSection 
+            targetId={answer._id} 
+            type="answer" 
+            // initialComments={answer.comments || []} 
           />
         </div>
       </div>

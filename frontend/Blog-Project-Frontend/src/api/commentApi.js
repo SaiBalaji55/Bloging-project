@@ -24,3 +24,10 @@ export const deleteComment = async (id)=>{
     const response = await axiosClient.delete(`/comments/${id}`);
     return response.data;
 }
+
+// Add this inside src/api/commentApi.js if you haven't already
+export const fetchAnswerComments = async (answerId) => {
+  // Update this URL to match whatever backend route you created for answer comments
+  const response = await axiosClient.get(`/answers/${answerId}/comments`); 
+  return response.data;
+};
