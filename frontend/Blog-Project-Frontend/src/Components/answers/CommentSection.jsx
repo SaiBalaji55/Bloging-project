@@ -1,36 +1,41 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../Context/AuthContext';
-// Import your API functions
 import { 
   fetchQuestionComments, 
+  fetchAnswerComments, 
   createQuestionComment, 
   createAnswerComment 
 } from '../../api/commentApi'; 
 
-const CommentSection = ({ targetId, type }) => {
+const CommentSection = ({ targetId, type, initialComments }) => {
   const { isAuthenticated } = useAuth();
-  const [comments, setComments] = useState([]);
+  
+  // 1. Initialize state with initialComments (or empty array) ONCE when component mounts
+  const [comments, setComments] = useState(initialComments || []);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. Fetch comments when the component loads
   useEffect(() => {
+    // Always fetch directly from the backend on load
     const loadComments = async () => {
       try {
-        // We only have fetchQuestionComments in the API right now, 
-        // but you can expand this for answers if your backend supports it
         if (type === 'question') {
           const data = await fetchQuestionComments(targetId);
           setComments(data.comments || data);
+        } else if (type === 'answer') {
+          const data = await fetchAnswerComments(targetId);
+          setComments(data.comments || data);
         }
       } catch (error) {
-        console.error("Failed to load comments", error);
+        console.error(`Failed to load ${type} comments`, error);
       }
     };
-    loadComments();
+    if (targetId) {
+      loadComments();
+    }
   }, [targetId, type]);
 
-  // 2. Handle adding a new comment
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return;
@@ -44,9 +49,9 @@ const CommentSection = ({ targetId, type }) => {
         addedComment = await createAnswerComment(targetId, newComment);
       }
       
-      // Add the new comment to the UI instantly
+      // Instantly add the new comment to the UI
       setComments([...comments, addedComment.comment || addedComment]);
-      setNewComment(''); // Clear the input field
+      setNewComment(''); 
     } catch (error) {
       alert(error.response?.data?.message || "Failed to add comment.");
     } finally {
@@ -56,7 +61,6 @@ const CommentSection = ({ targetId, type }) => {
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-      {/* Display Existing Comments */}
       <div className="space-y-3 mb-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
         {comments.map((c, index) => (
           <div key={c._id || index} className="text-sm text-gray-700 dark:text-gray-300">
@@ -68,7 +72,6 @@ const CommentSection = ({ targetId, type }) => {
         ))}
       </div>
 
-      {/* Add New Comment Form */}
       {isAuthenticated ? (
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input 
@@ -81,7 +84,7 @@ const CommentSection = ({ targetId, type }) => {
           <button 
             type="submit" 
             disabled={isSubmitting || !newComment.trim()}
-            className="px-3 py-2 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 rounded disabled:opacity-50"
+            className="px-3 py-2 text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 rounded disabled:opacity-50 transition"
           >
             {isSubmitting ? '...' : 'Comment'}
           </button>
