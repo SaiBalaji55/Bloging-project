@@ -8,3 +8,33 @@
 .quill .ql-editor {
   min-height: 300px;
 }
+
+/* Style for large code blocks */
+.prose pre,
+.prose .ql-syntax {
+  background-color: #1e1e1e !important; /* Dark background like VS Code */
+  color: #d4d4d4 !important; /* Light text */
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  overflow-x: auto !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 0.875rem !important;
+  margin-top: 1.5em !important;
+  margin-bottom: 1.5em !important;
+  border: 1px solid #333;
+}
+
+/* Style for small inline code snippets (like TypeError) */
+.prose p code {
+  background-color: #f3f4f6 !important;
+  color: #ef4444 !important; /* Red text for visibility */
+  padding: 0.2em 0.4em !important;
+  border-radius: 0.25rem !important;
+  font-size: 0.875em !important;
+}
+
+/* Dark mode support for inline code */
+.dark .prose p code {
+  background-color: #374151 !important;
+  color: #fca5a5 !important;
+}
