@@ -63,7 +63,7 @@ const Navbar = ({ onMenuToggle }) => {
             {/* Text with styled Q */}
             <div className="flex flex-col justify-center leading-none">
               <div className="text-xl md:text-2xl font-extrabold tracking-wide text-gray-900 dark:text-white uppercase font-sans">
-                <span>AN</span>
+                <span>ANS</span>
                 <span className="text-transparent bg-clip-text bg-gradient-to-br from-cyan-400 to-blue-600">Q</span>
                 <span>ORA</span>
               </div>

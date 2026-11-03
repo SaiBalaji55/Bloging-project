@@ -2,7 +2,7 @@ import express from 'express';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { 
     getQuestionComments, addQuestionComment, addAnswerComment, 
-    updateComment, deleteComment 
+    updateComment, deleteComment, getAnswerComments 
 } from '../controller/commentController.js';
 
 // For /questions/:id/comments
@@ -14,6 +14,7 @@ questionCommentRoutes.route('/')
 // For /answers/:id/comments
 export const answerCommentRoutes = express.Router({ mergeParams: true });
 answerCommentRoutes.post('/', authMiddleware, addAnswerComment);
+answerCommentRoutes.get('/', getAnswerComments)
 
 // For /comments/:id
 export const commentRoutes = express.Router();

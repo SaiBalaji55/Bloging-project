@@ -15,6 +15,19 @@ export const getQuestionComments = async(req,res)=>{
     }
 }
 
+export const getAnswerComments = async(req,res)=>{
+    try{
+        const comments = await Comment.find({
+            itemId: req.params.id,
+            itemType: 'Answer',
+        }).populate('userId', 'name username').sort({createdAt: 1});
+        res.status(200).json(comments);
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+}
+
 const addComment = async (req, res, itemType)=>{
     const {content} = req.body;
     const itemId = req.params.id;
